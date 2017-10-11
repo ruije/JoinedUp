@@ -29,12 +29,12 @@ public class joiner{
     
     public static void main(String[] args){
         //System.out.println("Scanning...");
-        Scanner scan = new Scanner(System.in); 
+        Scanner scan = new Scanner(System.in); //scans file not command line
         while(scan.hasNext()){ //scan in the entire dictionary
             dict.add(scan.next());
         }
         //System.out.println("Sorting...");
-        Collections.sort(dict); 
+        Collections.sort(dict); //sort the dictionary
         //System.out.println("Finding Letters...");
         int posCh = 0, posDict = 0;
         for(char cur = 'a'; cur <='z'; cur++){ //find the first occurance of each letter of the alphabet
@@ -61,7 +61,7 @@ public class joiner{
                     b = true; //located args[1]
                 }
                 if(a && b){
-                    break; 
+                    break; //no need to go through every word once they're found
                 }
             }
             /////////////
@@ -70,9 +70,9 @@ public class joiner{
                 tree = new Tree<String>(args[0]);
                 dtree = new Tree<String>(args[0]);
                 q.add(args[0]);
-                builder(q.peek(),args[1]); //make the tree
-                if(!q.isEmpty()){ //the loop to buid the tree exits if args[1] is found or q is empty
-                    submain(args[0],args[1]); //determine if double/single found
+                builder(q.peek(),args[1]);
+                if(!q.isEmpty()){
+                    submain(args[0],args[1]); //SUBMAIN IS CALLED HERE
                     // //***************DISPLAYING********************
                     if(sing.size() > 0){
                         System.out.print(sing.size() + " ");
@@ -104,33 +104,31 @@ public class joiner{
 
     public static void submain(String s, String f){
         //System.out.println("Processing...");
-        a: while(!isD && !q.isEmpty()){ //doubly joined solutions are also singly joined
+        a: while(!isD && !q.isEmpty()){
             String result = "", e;
-            e = tree.findParents(f); //returns a string of nodes from f to 1 before the root
-            //^should brobaby change to use dtree if isS
-            int num = 0; 
-            for(String aa : e.split(" ")){ 
-                if(!result.contains(aa)){ //recursion in findParents returns duplicates
+            e = tree.findParents(f);
+            int num = 0;
+            for(String aa : e.split(" ")){
+                if(!result.contains(aa)){
                     result += aa + " ";
                     num++;
                 }
             }
-            result += s; //add args[0] onto the end because findParents does not return root
+            result += s; //might be easier to just adjust the double check
             num++;
             String[] resarr= new String[num];
-            num--; //prevents nullpointer
+            num--;
             for(String aa : result.split(" ")){
                 resarr[num] = aa;
                 num --;
             }
-            for(int i = 0; i < resarr.length-1; i++){ 
+            for(int i = 0; i < resarr.length-1; i++){
                 isD = checkD(resarr[i], resarr[i+1]);
                 if(!isD){
                     break;
                 }
             }
-            //commented out since I think the above is more efficient
-            // if( dtree.find(f) != null){ 
+            // if( dtree.find(f) != null){ if the doubly joined tree contains args[1]
             //     isD = true;
             // }
             if(isD){
@@ -140,17 +138,17 @@ public class joiner{
                         sing.add(aa);
                     }
                 }
-                break a; //the while loop
+                break a;
                 //if something is doubly linked it is also singly
             } else{
-                if(!isS){ //if a solution has not already been found
+                if(!isS){
                     isS = true;
                     for(String aa : resarr){
                         sing.add(aa);
                     }
                 }
                 if(!q.isEmpty() && !loopstopper.equals(q.peek())){
-                    tree.remove(f); //you don't need to build past the solution
+                    tree.remove(f);
                     loopstopper = q.peek(); //probably not necessary
                     builder(q.peek(),f);
                 } else{
@@ -170,15 +168,15 @@ public class joiner{
         //System.out.println("Building...");
         do{
             //System.out.println("Children of " + s + ": ");
-            q.remove(); //this has to be done first
+            q.remove();
             //System.out.println("do while");
-            ArrayList<String> l  = subFinder(s, f); //finds valid solutions
+            ArrayList<String> l  = subFinder(s, f);
             //System.out.println(l);
             if(l != null){
                 String kids = "";
                 String dkids = ""; //for children who are doubly joined
                 for(String str : l){
-                    q.add(str); //width first search
+                    q.add(str);
                     if(str.equals(f)){
                         tree.addChildren(s, f, tree);
                         if(checkD(s,str)){
@@ -211,19 +209,13 @@ public class joiner{
     public static ArrayList<String> subFinder(String S, String f){
         //System.out.println("Finding results: ");
         ArrayList<String> found = new ArrayList<String>();
-        //every solution contains a substring of S
         for(int i = 0; i < S.length(); i++){
-          //start at the point in the dictionary
-            int index = charPos[letters.indexOf(S.charAt(i))]; //start
-            int k = 0; //end index
-            /*
-             * this section consumes the most runtime
-             * and needs to be changed to do a binary search
-             * to reduce the number of calls to connect
-             **/
-            if(letters.indexOf(S.charAt(i))+1 == 26){ //if the current letter is z
+            int index = charPos[letters.indexOf(S.charAt(i))];
+            int k = 0;
+            
+            if(letters.indexOf(S.charAt(i))+1 == 26){
                 k = dict.size()-1;
-            } else if(index == -1){ //go through everything if the right index isn't found
+            } else if(index == -1){
                 index = 0;
                  k = dict.size()-1;
             } else {
@@ -231,21 +223,21 @@ public class joiner{
             }
             
             //System.out.println(k);
-            //if(index != -1){ //this caused solutions to not be found
+            //if(index != -1){
                 for(int j = index; j < k; j++ ){
                     String seeker = dict.get(j);
                     if(connect(S, seeker)){
-                        if(!isS){ //if no solution has been found
-                            found.add(seeker);
-                            //System.out.print(seeker + " ");
-                            if(!seeker.equals(f)){ //do not overwrite the solution so it can be found again
-                                dict.set(j,"0"); //words need to be replaced to preserve indices
-                            }
-                        } else if(checkD(S,seeker)){ //if single has been found but not double
+                        if(!isS){
                             found.add(seeker);
                             //System.out.print(seeker + " ");
                             if(!seeker.equals(f)){
-                                dict.set(j,"0"); 
+                                dict.set(j,"0"); //words need to be replaced to preserve indices
+                            }
+                        } else if(checkD(S,seeker)){
+                            found.add(seeker);
+                            //System.out.print(seeker + " ");
+                            if(!seeker.equals(f)){
+                                dict.set(j,"0"); //words need to be replaced to preserve indices
                             }
                         }
                     }
@@ -263,8 +255,7 @@ public class joiner{
      */
     public static boolean connect(String one, String two){
         //System.out.println("Connecting...");
-        if(one.equals(two)) return false; //this shouldn't happen but just in case
-        //needs to be adjusted so 1 letter matches (cat, to) will join
+        if(one.equals(two)) return false;
         for(int i = 0; i < one.length(); i++){
             if(two.contains(one.substring(i,one.length()))
                && one.substring(i,one.length()).length() > 1
